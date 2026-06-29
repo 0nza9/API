@@ -1,65 +1,135 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState } from "react";
+import { fetchReviews, createReview, SAMPLE_REVIEWS } from "@/lib/api";
+import ReviewCard from "@/components/ReviewCard";
+import ReviewForm from "@/components/ReviewForm";
+import ReviewStats from "@/components/ReviewStats";
 
 export default function Home() {
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [offline, setOffline] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    fetchReviews()
+      .then((data) => {
+        if (!active) return;
+        setReviews(Array.isArray(data) ? data : []);
+        setOffline(false);
+      })
+      .catch(() => {
+        if (!active) return;
+        setReviews(SAMPLE_REVIEWS);
+        setOffline(true);
+      })
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function handleSubmit(payload) {
+    try {
+      const created = await createReview(payload);
+      setReviews((prev) => [created, ...prev]);
+    } catch (err) {
+      // Backend unreachable: add locally so the demo keeps working.
+      if (offline) {
+        setReviews((prev) => [
+          {
+            id: -Date.now(),
+            ...payload,
+            date: new Date().toISOString(),
+            authorized: false,
+          },
+          ...prev,
+        ]);
+        return;
+      }
+      throw err;
+    }
+  }
+
+  // Newest first.
+  const sorted = [...reviews].sort((a, b) => new Date(b.date) - new Date(a.date));
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
+    <div className="min-h-full bg-slate-50 dark:bg-slate-950">
+      {/* Hero */}
+      <header className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-br from-indigo-600 via-indigo-500 to-violet-600 dark:border-slate-800">
+        <div className="absolute inset-0 opacity-20 [background:radial-gradient(60rem_30rem_at_top,white,transparent)]" />
+        <div className="relative mx-auto max-w-5xl px-6 py-16 text-center sm:py-24">
+          <span className="inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-sm font-medium text-white ring-1 ring-inset ring-white/25">
+            ★ Avis vérifiés
+          </span>
+          <h1 className="mt-5 text-4xl font-bold tracking-tight text-white sm:text-5xl">
+            MDS Avis
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mx-auto mt-4 max-w-xl text-lg text-indigo-100">
+            Découvrez ce que pensent nos clients, et partagez à votre tour votre
+            expérience.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </header>
+
+      <main className="mx-auto max-w-5xl px-6 py-12">
+        {offline && (
+          <div className="mb-8 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300">
+            API injoignable — affichage de données de démonstration. Lancez le
+            backend (<code className="font-mono">api/</code>) pour des données
+            réelles.
+          </div>
+        )}
+
+        <div className="grid gap-10 lg:grid-cols-[1fr_380px]">
+          {/* Reviews column */}
+          <section className="order-2 lg:order-1">
+            <div className="mb-6 flex items-baseline justify-between">
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+                Les avis
+              </h2>
+              <span className="text-sm text-slate-500 dark:text-slate-400">
+                {sorted.length} au total
+              </span>
+            </div>
+
+            {loading ? (
+              <div className="grid gap-5 sm:grid-cols-2">
+                {[0, 1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="h-44 animate-pulse rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
+                  />
+                ))}
+              </div>
+            ) : sorted.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center dark:border-slate-700 dark:bg-slate-900">
+                <p className="text-slate-500 dark:text-slate-400">
+                  Aucun avis pour le moment. Soyez le premier à en laisser un !
+                </p>
+              </div>
+            ) : (
+              <div className="grid gap-5 sm:grid-cols-2">
+                {sorted.map((review) => (
+                  <ReviewCard key={review.id} review={review} />
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Sidebar: stats + form */}
+          <aside className="order-1 flex flex-col gap-8 lg:order-2">
+            <ReviewStats reviews={sorted} />
+            <ReviewForm onSubmit={handleSubmit} />
+          </aside>
         </div>
       </main>
+
+      <footer className="border-t border-slate-200 py-8 text-center text-sm text-slate-400 dark:border-slate-800">
+        MDS Avis — projet BTS SIO
+      </footer>
     </div>
   );
 }
