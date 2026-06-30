@@ -1,15 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { fetchReviews, createReview, SAMPLE_REVIEWS } from "@/lib/api";
+import { useSession } from "@/lib/auth";
 import ReviewCard from "@/components/ReviewCard";
 import ReviewForm from "@/components/ReviewForm";
 import ReviewStats from "@/components/ReviewStats";
+import AuthNav from "@/components/AuthNav";
 
 export default function Home() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [offline, setOffline] = useState(false);
+  const session = useSession();
 
   useEffect(() => {
     let active = true;
@@ -60,7 +64,10 @@ export default function Home() {
       {/* Hero */}
       <header className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-br from-indigo-600 via-indigo-500 to-violet-600 dark:border-slate-800">
         <div className="absolute inset-0 opacity-20 [background:radial-gradient(60rem_30rem_at_top,white,transparent)]" />
-        <div className="relative mx-auto max-w-5xl px-6 py-16 text-center sm:py-24">
+        <nav className="relative mx-auto flex max-w-5xl items-center justify-end px-6 pt-6">
+          <AuthNav />
+        </nav>
+        <div className="relative mx-auto max-w-5xl px-6 pb-16 pt-10 text-center sm:pb-24">
           <span className="inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-sm font-medium text-white ring-1 ring-inset ring-white/25">
             ★ Avis vérifiés
           </span>
@@ -122,7 +129,32 @@ export default function Home() {
           {/* Sidebar: stats + form */}
           <aside className="order-1 flex flex-col gap-8 lg:order-2">
             <ReviewStats reviews={sorted} />
-            <ReviewForm onSubmit={handleSubmit} />
+            {session?.user ? (
+              <ReviewForm onSubmit={handleSubmit} />
+            ) : (
+              <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm sm:p-8 dark:border-slate-800 dark:bg-slate-900">
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                  Laisser un avis
+                </h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  Connectez-vous pour partager votre expérience.
+                </p>
+                <div className="mt-2 flex justify-center gap-2">
+                  <Link
+                    href="/login"
+                    className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-500"
+                  >
+                    Connexion
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="inline-flex items-center justify-center rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                  >
+                    Inscription
+                  </Link>
+                </div>
+              </div>
+            )}
           </aside>
         </div>
       </main>

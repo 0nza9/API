@@ -28,6 +28,9 @@ const loginMw = require('../middleware/post.middleware.login')
 const forgotPasswordMw = require('../middleware/post.middleware.forgot-password')
 const resetPasswordMw = require('../middleware/post.middleware.reset-password')
 
+// Auth guard — exige un token de connexion valide.
+const requireAuth = require('../middleware/auth')
+
 // Keep only the entries that are real middleware functions.
 const use = (...handlers) => handlers.filter((h) => typeof h === 'function')
 
@@ -35,7 +38,7 @@ const use = (...handlers) => handlers.filter((h) => typeof h === 'function')
 router.get('/', ...use(getMw, getHome))
 router.get('/avis', ...use(getReviewsMw, getReviews))
 router.get('/avis/:id', ...use(getReviewByIdMw, getReviewById))
-router.post('/avis', ...use(addReviewMw, addReview))
+router.post('/avis', ...use(requireAuth, addReviewMw, addReview))
 router.put('/avis/:id/autoriser', ...use(authorizeReviewMw, authorizeReview))
 router.delete('/avis/:id', ...use(deleteReviewMw, deleteReview))
 

@@ -1,5 +1,7 @@
 // Client for the Express "avis" API.
 // Override the base URL with NEXT_PUBLIC_API_URL (e.g. http://localhost:3000).
+import { getSession } from "@/lib/auth";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 // Shown when the backend isn't reachable, so the design always renders.
@@ -40,9 +42,14 @@ export async function fetchReviews() {
 }
 
 export async function createReview({ author, description, rating }) {
+  const session = getSession();
   const res = await fetch(`${API_URL}/avis`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      // Posting requires login: the API rejects requests without a valid token.
+      ...(session?.token ? { Authorization: `Bearer ${session.token}` } : {}),
+    },
     body: JSON.stringify({ author, description, rating }),
   });
   if (!res.ok) {

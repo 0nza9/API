@@ -28,3 +28,6 @@ Thumbs.db
 *.tsbuildinfo
 .vercel
 coverage/
+
+# Local user accounts (contain password hashes) — never commit
+api/data/users.json
