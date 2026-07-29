@@ -1,0 +1,6 @@
+# Ne pas déployer le back-end sur Vercel.
+# Vercel transforme automatiquement chaque fichier d'un dossier /api à la racine
+# en "fonction serverless". Notre API Express (dossier api/) contient beaucoup de
+# fichiers et dépasse la limite du plan Hobby (12 fonctions) -> build échoué.
+# L'API tourne sur Render, pas sur Vercel : on l'exclut donc du déploiement Vercel.
+api
