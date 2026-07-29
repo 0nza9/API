@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# MDS Avis
 
-## Getting Started
+Application de gestion d'avis clients : consultation publique, publication d'avis
+avec **modération**, et espace **administrateur**. Le projet est composé d'un
+**front-end** (site web) et d'une **API** (back-end) séparés.
 
-First, run the development server:
+## 🧱 Stack technique
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+| Partie | Technologies |
+|---|---|
+| **Front-end** | Next.js 16 (App Router, React 19), Tailwind CSS v4, daisyUI |
+| **Back-end (API)** | Node.js, Express 5 |
+| **Base de données** | Prisma (ORM) + SQLite en local, **Turso** (libSQL) en production |
+| **Authentification** | Session par cookie **httpOnly**, mots de passe hachés avec **bcrypt** |
+| **Hébergement** | Front → **Vercel**, API → **Render**, BDD → **Turso** |
+
+## 🗂️ Architecture
+
+```
+API-main/
+├── app/, components/, service/   ← Front-end Next.js (à la racine)
+└── api/                          ← Back-end Express + Prisma
+    ├── controllers/  routes/  middleware/  repositories/
+    └── prisma/                   ← schéma + migrations de la base
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Le front-end n'a **aucune** logique de données : il appelle l'API en HTTP
+(`fetch`). L'API gère la base, l'authentification et les règles d'accès.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## 🔐 Fonctionnement (règles d'accès)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Consulter les avis** → public
+- **Publier un avis** → public (protégé par un *honeypot* anti-spam) ; l'avis
+  reste **en attente** jusqu'à validation
+- **Valider / modifier / supprimer un avis** → **administrateur** uniquement
+  (401 si non connecté, 403 si connecté mais non admin)
 
-## Learn More
+## 🚀 Lancer le projet en local
 
-To learn more about Next.js, take a look at the following resources:
+Prérequis : **Node.js 18+**. Il faut **deux terminaux** (l'API et le front
+tournent en même temps).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**1. L'API** (terminal 1)
+```bash
+cd api
+npm install
+cp .env.example .env        # DATABASE_URL="file:./dev.db" suffit en local
+npx prisma migrate dev      # crée la base SQLite locale
+npm run db:seed             # crée l'admin + des avis de démo
+npm start                   # API sur http://localhost:3000
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**2. Le front-end** (terminal 2, à la racine)
+```bash
+npm install
+cp .env.example .env.local  # NEXT_PUBLIC_BASE_URL="http://localhost:3000"
+npm run dev                 # site sur http://localhost:3001
+```
 
-## Deploy on Vercel
+Ouvrir **http://localhost:3001**.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Compte administrateur (de démonstration)
+```
+Email    : admin@mds-avis.fr
+Password : admin1234
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🔑 Variables d'environnement
+
+Voir `api/.env.example` (back-end) et `.env.example` (front-end).
+
+| Variable | Où | Rôle |
+|---|---|---|
+| `DATABASE_URL` | API (local) | Fichier SQLite local |
+| `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` | API (prod) | Base Turso |
+| `CORS_ORIGIN` | API (prod) | URL du front autorisée à appeler l'API |
+| `NODE_ENV` | API (prod) | `production` (active le cookie sécurisé) |
+| `NEXT_PUBLIC_BASE_URL` | Front | URL de l'API appelée par le site |
+
+## ☁️ Déploiement
+
+- **Base de données → Turso** : appliquer les migrations avec
+  `npm run db:turso:migrate` puis `npm run db:seed` (variables `TURSO_*` définies
+  dans le terminal).
+- **API → Render** : *Web Service*, Root Directory `api`, build
+  `npm install && npx prisma generate`, start `node index.js`, + les variables
+  ci-dessus.
+- **Front → Vercel** : Root Directory à la racine, variable
+  `NEXT_PUBLIC_BASE_URL` = l'URL Render. Le dossier `api/` est exclu du build
+  Vercel via `.vercelignore`.

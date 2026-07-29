@@ -23,7 +23,13 @@
       "Bash(node -e \"console.log\\('daisyui version:', require\\('./node_modules/daisyui/package.json'\\).version\\)\")",
       "Bash(netstat -ano)",
       "Bash(curl -s --max-time 4 -o /dev/null -w \"  GET /avis -> %{http_code}\\\\n\" http://localhost:3000/avis)",
-      "Bash(npm ls *)"
+      "Bash(npm ls *)",
+      "Bash(curl -s --max-time 60 -w '\\\\n[status %{http_code}]\\\\n' https://api-shgv.onrender.com/avis)",
+      "Bash(curl -s --max-time 30 -o /dev/null -w '[status %{http_code}]\\\\n' https://api-shgv.onrender.com/me)",
+      "Bash(curl -s --max-time 30 -o /dev/null -D - -H 'Origin: https://api-alpha-smoky-73.vercel.app' https://api-shgv.onrender.com/avis)",
+      "Bash(curl -s --max-time 60 -c /tmp/live.jar -X POST https://api-shgv.onrender.com/login -H 'Content-Type: application/json' -H 'Origin: https://api-alpha-smoky-73.vercel.app' -d '{\"email\":\"admin@mds-avis.fr\",\"password\":\"admin1234\"}' -w '\\\\n[login status %{http_code}]\\\\n')",
+      "Bash(curl -s --max-time 30 -b /tmp/live.jar __TRACKED_VAR__/me -w '\\\\n[me status %{http_code}]\\\\n')",
+      "Bash(curl -s --max-time 30 -D - -o /dev/null -X POST __TRACKED_VAR__/login -H 'Content-Type: application/json' -d '{\"email\":\"admin@mds-avis.fr\",\"password\":\"admin1234\"}')"
     ],
     "additionalDirectories": [
       "\\tmp"
