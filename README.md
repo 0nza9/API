@@ -4,7 +4,7 @@ Application de gestion d'avis clients : consultation publique, publication d'avi
 avec **modération**, et espace **administrateur**. Le projet est composé d'un
 **front-end** (site web) et d'une **API** (back-end) séparés.
 
-## 🧱 Stack technique
+##  Stack technique
 
 | Partie | Technologies |
 |---|---|
@@ -14,7 +14,7 @@ avec **modération**, et espace **administrateur**. Le projet est composé d'un
 | **Authentification** | Session par cookie **httpOnly**, mots de passe hachés avec **bcrypt** |
 | **Hébergement** | Front → **Vercel**, API → **Render**, BDD → **Turso** |
 
-## 🗂️ Architecture
+##  Architecture
 
 ```
 API-main/
@@ -27,7 +27,7 @@ API-main/
 Le front-end n'a **aucune** logique de données : il appelle l'API en HTTP
 (`fetch`). L'API gère la base, l'authentification et les règles d'accès.
 
-## 🔐 Fonctionnement (règles d'accès)
+## Fonctionnement (règles d'accès)
 
 - **Consulter les avis** → public
 - **Publier un avis** → public (protégé par un *honeypot* anti-spam) ; l'avis
@@ -35,7 +35,7 @@ Le front-end n'a **aucune** logique de données : il appelle l'API en HTTP
 - **Valider / modifier / supprimer un avis** → **administrateur** uniquement
   (401 si non connecté, 403 si connecté mais non admin)
 
-## 🚀 Lancer le projet en local
+##  Lancer le projet en local
 
 Prérequis : **Node.js 18+**. Il faut **deux terminaux** (l'API et le front
 tournent en même temps).
@@ -65,7 +65,7 @@ Email    : admin@mds-avis.fr
 Password : admin1234
 ```
 
-## 🔑 Variables d'environnement
+## Variables d'environnement
 
 Voir `api/.env.example` (back-end) et `.env.example` (front-end).
 
