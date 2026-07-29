@@ -22,7 +22,8 @@
       "PowerShell(Get-CimInstance Win32_LogicalDisk -Filter \"DeviceID='F:'\" | Select-Object DeviceID, @{n='Type';e={switch\\($_.DriveType\\){2{'Removable/USB'}3{'Local disk'}4{'Network drive'}5{'CD'}default{'Other'}}}}, @{n='FreeGB';e={[math]::Round\\($_.FreeSpace/1GB,1\\)}}, @{n='SizeGB';e={[math]::Round\\($_.Size/1GB,1\\)}}, FileSystem, VolumeName)",
       "Bash(node -e \"console.log\\('daisyui version:', require\\('./node_modules/daisyui/package.json'\\).version\\)\")",
       "Bash(netstat -ano)",
-      "Bash(curl -s --max-time 4 -o /dev/null -w \"  GET /avis -> %{http_code}\\\\n\" http://localhost:3000/avis)"
+      "Bash(curl -s --max-time 4 -o /dev/null -w \"  GET /avis -> %{http_code}\\\\n\" http://localhost:3000/avis)",
+      "Bash(npm ls *)"
     ],
     "additionalDirectories": [
       "\\tmp"

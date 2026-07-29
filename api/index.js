@@ -40,6 +40,9 @@ app.use((err, req, res, next) => {
   res.status(status).json({ message: 'Erreur serveur' })
 })
 
-app.listen(3000, () => {
-  console.log('Server is running on http://localhost:3000')
+// L'hébergeur (Render...) impose le port via la variable d'environnement PORT.
+// En local, on retombe sur 3000.
+const PORT = process.env.PORT || 3000
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`)
 })
