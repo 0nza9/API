@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+/* daisyUI (plugin Tailwind v4). "corporate" = thème clair et sobre par défaut,
+   "business" = thème sombre utilisé si l'OS est en mode sombre. */
+@plugin "daisyui" {
+  themes: corporate --default, business --prefersdark;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}

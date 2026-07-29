@@ -1,67 +1,51 @@
-const fs = require('fs')
-const path = require('path')
+const prisma = require('../lib/prisma')
 
-// Fake "database": a JSON file. All data access goes through this module,
-// so swapping to MySQL later only means rewriting these functions.
-const DATA_DIR = path.join(__dirname, '..', 'data')
-const DATA_FILE = path.join(DATA_DIR, 'reviews.json')
+// Review ("avis") data access, backed by SQLite via Prisma.
+// Every function is async (returns a Promise), so callers must `await` them.
 
-function read() {
-  try {
-    return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'))
-  } catch {
-    return [] // file missing or empty/corrupt -> start fresh
-  }
+// Public list: only authorized reviews, newest first.
+function getPublic() {
+  return prisma.avis.findMany({
+    where: { authorized: true },
+    orderBy: { createdAt: 'desc' },
+  })
 }
 
-function write(reviews) {
-  fs.mkdirSync(DATA_DIR, { recursive: true })
-  fs.writeFileSync(DATA_FILE, JSON.stringify(reviews, null, 2))
-}
-
-function nextId(reviews) {
-  return reviews.reduce((max, r) => Math.max(max, r.id), 0) + 1
-}
-
+// Admin list: everything, including reviews awaiting moderation.
 function getAll() {
-  return read()
+  return prisma.avis.findMany({ orderBy: { createdAt: 'desc' } })
 }
 
 function getById(id) {
-  return read().find((r) => r.id === Number(id)) || null
+  return prisma.avis.findUnique({ where: { id: Number(id) } })
 }
 
-function create({ author, description, rating }) {
-  const reviews = read()
-  const review = {
-    id: nextId(reviews),
-    author,
-    description,
-    rating,
-    date: new Date().toISOString(),
-    authorized: false, // must be approved via PUT /avis/:id/autoriser
+function create({ author, email, description, rating }) {
+  return prisma.avis.create({
+    data: { author, email: email || null, description, rating },
+  })
+}
+
+// Partial update (edit content / rating). Returns null if the review is gone.
+async function update(id, data) {
+  try {
+    return await prisma.avis.update({ where: { id: Number(id) }, data })
+  } catch {
+    return null // record not found
   }
-  reviews.push(review)
-  write(reviews)
-  return review
 }
 
 function authorize(id) {
-  const reviews = read()
-  const review = reviews.find((r) => r.id === Number(id))
-  if (!review) return null
-  review.authorized = true
-  write(reviews)
-  return review
+  return update(id, { authorized: true })
 }
 
-function remove(id) {
-  const reviews = read()
-  const index = reviews.findIndex((r) => r.id === Number(id))
-  if (index === -1) return false
-  reviews.splice(index, 1)
-  write(reviews)
-  return true
+async function remove(id) {
+  try {
+    await prisma.avis.delete({ where: { id: Number(id) } })
+    return true
+  } catch {
+    return false // record not found
+  }
 }
 
-module.exports = { getAll, getById, create, authorize, remove }
+module.exports = { getPublic, getAll, getById, create, update, authorize, remove }

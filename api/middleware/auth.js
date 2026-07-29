@@ -1,16 +1,22 @@
 const users = require('../repositories/users.repo')
 
-// Protège une route : exige un header "Authorization: Bearer <token>" valide.
-// Le token est celui renvoyé par POST /login.
-module.exports = (req, res, next) => {
+// Protège une route : exige une session valide.
+// Le jeton est lu depuis le cookie httpOnly "token" (posé au /login) ou, à défaut,
+// depuis l'en-tête "Authorization: Bearer <token>".
+module.exports = async (req, res, next) => {
   const header = req.headers.authorization || ''
-  const token = header.startsWith('Bearer ') ? header.slice(7) : null
+  const bearer = header.startsWith('Bearer ') ? header.slice(7) : null
+  const token = (req.cookies && req.cookies.token) || bearer
 
-  const user = token ? users.findByToken(token) : null
-  if (!user) {
-    return res.status(401).json({ message: 'Authentification requise' })
+  try {
+    const user = token ? await users.findByToken(token) : null
+    if (!user) {
+      return res.status(401).json({ message: 'Authentification requise' })
+    }
+
+    req.user = { id: user.id, email: user.email, isAdmin: user.isAdmin }
+    next()
+  } catch (err) {
+    next(err)
   }
-
-  req.user = { id: user.id, email: user.email }
-  next()
 }

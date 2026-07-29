@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh auth *)",
+      "Bash(gh repo *)",
+      "Bash(gh api *)",
+      "Bash(git init *)",
+      "Bash(git remote *)",
+      "Bash(git fetch *)",
+      "Bash(git reset *)",
+      "Bash(npm -v)",
+      "Bash(grep -E \"^\\(argon2|nodemailer|cors|express|@prisma\\)$\")",
+      "Bash(node -e \"require\\('./routes/index'\\); console.log\\('routes OK - all controllers/middleware load'\\)\")",
+      "Bash(timeout 8 node index.js)",
+      "Bash(curl -s -o /dev/null -w \"GET / -> %{http_code}\\\\n\" http://localhost:3000/)",
+      "Bash(curl -s -w \"\\\\nGET /avis -> %{http_code}\\\\n\" http://localhost:3000/avis)",
+      "Bash(wait)",
+      "Bash(npm run *)",
+      "Bash(node -e 'const p=require\\('\\\\''./lib/prisma'\\\\''\\); p.authToken.deleteMany\\(\\).then\\(r=>{console.log\\('\\\\''deleted sessions:'\\\\'',r.count\\); return p.$disconnect\\(\\)}\\).then\\(\\(\\)=>process.exit\\(0\\)\\).catch\\(e=>{console.error\\(e\\);process.exit\\(1\\)}\\)')",
+      "Bash(npx prisma *)",
+      "Bash(node index.js > /tmp/apiX.log 2>&1)",
+      "PowerShell(Get-CimInstance Win32_LogicalDisk -Filter \"DeviceID='F:'\" | Select-Object DeviceID, @{n='Type';e={switch\\($_.DriveType\\){2{'Removable/USB'}3{'Local disk'}4{'Network drive'}5{'CD'}default{'Other'}}}}, @{n='FreeGB';e={[math]::Round\\($_.FreeSpace/1GB,1\\)}}, @{n='SizeGB';e={[math]::Round\\($_.Size/1GB,1\\)}}, FileSystem, VolumeName)",
+      "Bash(node -e \"console.log\\('daisyui version:', require\\('./node_modules/daisyui/package.json'\\).version\\)\")",
+      "Bash(netstat -ano)",
+      "Bash(curl -s --max-time 4 -o /dev/null -w \"  GET /avis -> %{http_code}\\\\n\" http://localhost:3000/avis)"
+    ],
+    "additionalDirectories": [
+      "\\tmp"
+    ]
+  }
+}

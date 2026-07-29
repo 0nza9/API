@@ -1,19 +1,51 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// Prisma schema — local SQLite database.
+// Docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
+// An application user / account.
+model User {
+  id           Int         @id @default(autoincrement())
+  email        String      @unique
+  passwordHash String
+  // Moderators/admins are the only users allowed to edit or delete any review
+  // (Option 1 — création publique + modération).
+  isAdmin      Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+  // Password-reset state (null when no reset is pending).
+  resetToken   String?     @unique
+  resetExpires DateTime?
+  // Active login sessions.
+  authTokens   AuthToken[]
+}
 
-model Review {
-  id          Int
-  name        String
+// A customer review ("avis"). Created publicly (no account required); only an
+// admin can authorize, edit or delete one.
+model Avis {
+  id          Int      @id @default(autoincrement())
+  author      String
+  // Optional e-mail of the person who posted it (accountability / future claim).
+  email       String?
+  description String
+  rating      Int
+  // Reviews start hidden and become public once a moderator authorizes them.
+  authorized  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+// A login token issued at /login and verified by the auth middleware.
+model AuthToken {
+  token     String   @id
+  userId    Int
+  createdAt DateTime @default(now())
+  // Sessions have a fixed lifetime; expired tokens are rejected by the auth guard.
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

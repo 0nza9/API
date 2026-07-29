@@ -1,21 +1,15 @@
 const reviews = require('../repositories/reviews.repo')
 
-// POST /avis — ajouter un avis
-// identité de l'auteur / description / note de l'avis (la date est générée côté serveur)
-module.exports = (req, res) => {
-  const { author, description, rating } = req.body || {}
+// POST /avis — publier un avis (ACCÈS PUBLIC, aucun compte requis).
+// Les champs sont validés (et le honeypot anti-spam vérifié) par post.middleware.js.
+// L'avis est créé non autorisé : il n'apparaît publiquement qu'après modération.
+module.exports = async (req, res, next) => {
+  const { author, email, description, rating } = req.body || {}
 
-  if (!author || !description || rating === undefined) {
-    return res
-      .status(400)
-      .json({ message: 'Champs requis : author, description, rating' })
+  try {
+    const review = await reviews.create({ author, email, description, rating })
+    res.status(201).json(review)
+  } catch (err) {
+    next(err)
   }
-  if (typeof rating !== 'number' || rating < 1 || rating > 5) {
-    return res
-      .status(400)
-      .json({ message: 'rating doit être un nombre entre 1 et 5' })
-  }
-
-  const review = reviews.create({ author, description, rating })
-  res.status(201).json(review)
 }
